@@ -1,0 +1,15 @@
+# Build
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.cache
+*.log
+.claude
+
+# Visual Studio / VS Code
+.vs/
+*.rsuser
+
+# Publish / package
+publish/

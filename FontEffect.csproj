@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>13.0</LangVersion>
+
+    <AssemblyName>FontEffect</AssemblyName>
+    <RootNamespace>FontEffect</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>bluemistel</Authors>
+    <Product>フォント変更エフェクト</Product>
+    <Description>テキストアイテムのフォント・文字間隔などを映像エフェクトとして上書きする YMM4 プラグイン</Description>
+    <NeutralLanguage>ja-JP</NeutralLanguage>
+
+    <!-- 開発用 YMM4 の配置フォルダ（末尾に \ が必要） -->
+    <YMM4DirPath Condition="'$(YMM4DirPath)' == ''">C:\tools\YukkuriMovieMaker_Dev\</YMM4DirPath>
+  </PropertyGroup>
+
+  <!-- ================= YMM4 / Vortice / SharpGen 参照 ================= -->
+  <ItemGroup>
+    <Reference Include="SharpGen.Runtime">
+      <HintPath>$(YMM4DirPath)SharpGen.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SharpGen.Runtime.COM">
+      <HintPath>$(YMM4DirPath)SharpGen.Runtime.COM.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vortice.Direct2D1">
+      <HintPath>$(YMM4DirPath)Vortice.Direct2D1.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vortice.DirectX">
+      <HintPath>$(YMM4DirPath)Vortice.DirectX.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Vortice.Mathematics">
+      <HintPath>$(YMM4DirPath)Vortice.Mathematics.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Controls">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Controls.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ================= ビルド後に YMM4 プラグインフォルダへ配置 ================= -->
+  <Target Name="CopyToYmm4PluginDir" AfterTargets="Build" Condition="'$(SkipPluginCopy)' != 'true'">
+    <MakeDir Directories="$(YMM4DirPath)user\plugin\$(AssemblyName)" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(YMM4DirPath)user\plugin\$(AssemblyName)"
+          SkipUnchangedFiles="true" />
+    <Message Text="✓ Copied $(AssemblyName).dll to $(YMM4DirPath)user\plugin\$(AssemblyName)" Importance="high" />
+  </Target>
+
+  <!-- ================= 配布用 .ymme パッケージの生成 ================= -->
+  <!-- 使い方: dotnet build -c Release -p:PackYmme=true -->
+  <!-- 出力: publish\FontEffect.v.<Version>.ymme（中に FontEffect\ フォルダ） -->
+  <Target Name="MakeYmme" AfterTargets="Build" Condition="'$(PackYmme)' == 'true'">
+    <PropertyGroup>
+      <YmmeStageRoot>$(OutputPath)ymme</YmmeStageRoot>
+      <YmmeStage>$(YmmeStageRoot)\$(AssemblyName)</YmmeStage>
+      <YmmeOut>$(MSBuildProjectDirectory)\publish\$(AssemblyName).v.$(Version).ymme</YmmeOut>
+    </PropertyGroup>
+    <RemoveDir Directories="$(YmmeStageRoot)" />
+    <MakeDir Directories="$(YmmeStage)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(YmmeStage)" />
+    <Copy SourceFiles="README.md" DestinationFolder="$(YmmeStage)" Condition="Exists('README.md')" />
+    <Copy SourceFiles="LICENSE" DestinationFolder="$(YmmeStage)" Condition="Exists('LICENSE')" />
+    <MakeDir Directories="$(MSBuildProjectDirectory)\publish" />
+    <Delete Files="$(YmmeOut)" />
+    <ZipDirectory SourceDirectory="$(YmmeStageRoot)" DestinationFile="$(YmmeOut)" Overwrite="true" />
+    <Message Text="✓ ymme package created: $(YmmeOut)" Importance="high" />
+  </Target>
+
+</Project>
